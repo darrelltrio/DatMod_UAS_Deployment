@@ -7,7 +7,6 @@ import joblib
 # ==========================================
 st.set_page_config(page_title="EcoSim: CO2 Predictor", page_icon="🌍", layout="wide")
 
-# Custom CSS agar metrik dan font terlihat modern
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
@@ -38,7 +37,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 2. LOAD DATA & MODEL (Menggunakan Cache)
+# 2. LOAD DATA & MODEL (Dengan Cache)
 # ==========================================
 @st.cache_resource
 def load_model():
@@ -56,138 +55,136 @@ except FileNotFoundError:
     st.stop()
 
 # ==========================================
-# 3. HEADER & BANNER IMAGE
+# 3. SIDEBAR NAVIGATION
 # ==========================================
-st.image("https://images.unsplash.com/photo-1466611653911-95081537e5b7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80", use_column_width=True)
-st.title("🌍 EcoSim: What-If CO2 Emissions Simulator")
-st.markdown("*Interactive Scenario Analysis for Global Energy Transition (2020 ➔ 2030)*")
-st.divider()
+st.sidebar.title("📌 Navigasi Panel")
+# Membuat radio button untuk memilih halaman
+menu = st.sidebar.radio("Pilih Halaman:", ["📊 Simulator (Deployment)", "👥 Meet the Team"])
 
-# ==========================================
-# 4. SIDEBAR (USER INTERFACE PANEL)
-# ==========================================
-st.sidebar.header("🎛️ Scenario Control Panel")
-
-# Fitur Dropdown dan Slider
-countries_2020 = df[df['Year'] == 2020]['Entity'].unique()
-selected_country = st.sidebar.selectbox("Pilih Negara:", sorted(countries_2020), index=int(sorted(countries_2020).index('Indonesia') if 'Indonesia' in countries_2020 else 0))
-
-st.sidebar.markdown("### 📈 Asumsi Ekonomi (Hingga 2030)")
-gdp_growth = st.sidebar.slider("Pertumbuhan GDP Tahunan (%)", min_value=1.0, max_value=10.0, value=4.0, step=0.5)
-energy_growth = st.sidebar.slider("Lonjakan Konsumsi Energi Tahunan (%)", min_value=1.0, max_value=8.0, value=2.0, step=0.5)
-
-st.sidebar.markdown("### 🍃 Target Transisi Energi (2030)")
-target_renewable = st.sidebar.slider("Target Energi Terbarukan (%)", min_value=0.0, max_value=100.0, value=50.0, step=1.0)
-target_lowcarbon = st.sidebar.slider("Target Listrik Rendah Karbon (%)", min_value=0.0, max_value=100.0, value=60.0, step=1.0)
+st.sidebar.divider() # Garis pemisah di sidebar
 
 # ==========================================
-# 5. BACKEND PREDICTION LOGIC
+# PANEL 1: SIMULATOR DEPLOYMENT
 # ==========================================
-features = [
-    'gdp_per_capita', 'Access to electricity (% of population)',
-    'Renewable energy share in the total final energy consumption (%)',
-    'Primary energy consumption per capita (kWh/person)',
-    'Energy intensity level of primary energy (MJ/$2017 PPP GDP)',
-    'Low-carbon electricity (% electricity)', 'Years_Since_2000',
-    'Prev_Year_Renewable_Share', '3_Year_Avg_GDP_Growth'
-]
-
-# Baseline 2020
-base_data = df[(df['Entity'] == selected_country) & (df['Year'] == 2020)].iloc[0]
-actual_co2_2020 = base_data['CO2_per_capita_tons']
-
-# Skenario Masa Depan 2030
-years_ahead = 10
-future_features = base_data[features].copy()
-future_features['Years_Since_2000'] = 30
-future_features['Access to electricity (% of population)'] = 100.0
-
-# Aplikasikan input dari slider ke variabel
-future_features['gdp_per_capita'] *= ((1 + (gdp_growth/100)) ** years_ahead)
-future_features['3_Year_Avg_GDP_Growth'] = gdp_growth
-future_features['Primary energy consumption per capita (kWh/person)'] *= ((1 + (energy_growth/100)) ** years_ahead)
-
-future_features['Renewable energy share in the total final energy consumption (%)'] = target_renewable
-future_features['Prev_Year_Renewable_Share'] = target_renewable - 2.0
-future_features['Low-carbon electricity (% electricity)'] = target_lowcarbon
-
-# Eksekusi Prediksi
-pred_co2_2030 = rf_model.predict(future_features.values.reshape(1, -1))[0]
-delta_pct = ((pred_co2_2030 - actual_co2_2020) / actual_co2_2020) * 100
-
-# ==========================================
-# 6. MAIN DASHBOARD DISPLAY
-# ==========================================
-st.markdown(f"### Analisis Skenario Tahun 2030: **{selected_country}**")
-
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.markdown(f"""
-        <div class="metric-card" style="border-top: 5px solid #6c757d;">
-            <div class="metric-label">Actual CO2 (2020)</div>
-            <div class="metric-value">{actual_co2_2020:.2f} <span style="font-size:1rem;">Tons</span></div>
-            <div style="color: #6c757d; font-size: 0.9rem; margin-top:10px;">Baseline</div>
-        </div>
-    """, unsafe_allow_html=True)
-
-with col2:
-    color = "#d32f2f" if delta_pct > 0 else "#2e7b32"
-    trend = "🔺 Naik" if delta_pct > 0 else "📉 Turun"
+if menu == "📊 Simulator (Deployment)":
     
-    st.markdown(f"""
-        <div class="metric-card" style="border-top: 5px solid {color};">
-            <div class="metric-label">Predicted CO2 (2030)</div>
-            <div class="metric-value" style="color: {color};">{pred_co2_2030:.2f} <span style="font-size:1rem; color:#1e1e1e;">Tons</span></div>
-            <div style="color: {color}; font-size: 0.9rem; font-weight:bold; margin-top:10px;">{trend} {abs(delta_pct):.1f}% dari 2020</div>
-        </div>
-    """, unsafe_allow_html=True)
+    # Header Panel 1
+    st.image("https://images.unsplash.com/photo-1466611653911-95081537e5b7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80", use_column_width=True)
+    st.title("🌍 EcoSim: What-If CO2 Emissions Simulator")
+    st.markdown("*Interactive Scenario Analysis for Global Energy Transition (2020 ➔ 2030)*")
+    st.divider()
 
-with col3:
-    st.markdown(f"""
-        <div class="metric-card" style="border-top: 5px solid #1976d2;">
-            <div class="metric-label">Target Energi Hijau</div>
-            <div class="metric-value">{target_renewable:.0f} <span style="font-size:1rem;">%</span></div>
-            <div style="color: #6c757d; font-size: 0.9rem; margin-top:10px;">Skenario Pilihan User</div>
-        </div>
-    """, unsafe_allow_html=True)
+    # Kontrol Scenario Pindah ke Sini (Hanya Muncul di Panel Simulator)
+    st.sidebar.header("🎛️ Scenario Control Panel")
 
-st.divider()
+    countries_2020 = df[df['Year'] == 2020]['Entity'].unique()
+    selected_country = st.sidebar.selectbox("Pilih Negara:", sorted(countries_2020), index=int(sorted(countries_2020).index('Indonesia') if 'Indonesia' in countries_2020 else 0))
 
-st.info(f"""
-**💡 Insight Model:** Jika **{selected_country}** mencetak pertumbuhan ekonomi rata-rata {gdp_growth}% dan konsumsi energi melonjak {energy_growth}% per tahun hingga 2030, emisi CO2 diproyeksikan berada di angka **{pred_co2_2030:.2f} Ton per kapita**. 
-Gunakan *slider* di sebelah kiri untuk menyimulasikan intervensi kebijakan transisi energi dan pantau perubahan emisi secara *real-time*!
-""")
+    st.sidebar.markdown("### 📈 Asumsi Ekonomi (Hingga 2030)")
+    gdp_growth = st.sidebar.slider("Pertumbuhan GDP Tahunan (%)", min_value=1.0, max_value=10.0, value=4.0, step=0.5)
+    energy_growth = st.sidebar.slider("Lonjakan Konsumsi Energi Tahunan (%)", min_value=1.0, max_value=8.0, value=2.0, step=0.5)
+
+    st.sidebar.markdown("### 🍃 Target Transisi Energi (2030)")
+    target_renewable = st.sidebar.slider("Target Energi Terbarukan (%)", min_value=0.0, max_value=100.0, value=50.0, step=1.0)
+    target_lowcarbon = st.sidebar.slider("Target Listrik Rendah Karbon (%)", min_value=0.0, max_value=100.0, value=60.0, step=1.0)
+
+    # Backend Logic Model
+    features = [
+        'gdp_per_capita', 'Access to electricity (% of population)',
+        'Renewable energy share in the total final energy consumption (%)',
+        'Primary energy consumption per capita (kWh/person)',
+        'Energy intensity level of primary energy (MJ/$2017 PPP GDP)',
+        'Low-carbon electricity (% electricity)', 'Years_Since_2000',
+        'Prev_Year_Renewable_Share', '3_Year_Avg_GDP_Growth'
+    ]
+
+    base_data = df[(df['Entity'] == selected_country) & (df['Year'] == 2020)].iloc[0]
+    actual_co2_2020 = base_data['CO2_per_capita_tons']
+
+    years_ahead = 10
+    future_features = base_data[features].copy()
+    future_features['Years_Since_2000'] = 30
+    future_features['Access to electricity (% of population)'] = 100.0
+
+    future_features['gdp_per_capita'] *= ((1 + (gdp_growth/100)) ** years_ahead)
+    future_features['3_Year_Avg_GDP_Growth'] = gdp_growth
+    future_features['Primary energy consumption per capita (kWh/person)'] *= ((1 + (energy_growth/100)) ** years_ahead)
+
+    future_features['Renewable energy share in the total final energy consumption (%)'] = target_renewable
+    future_features['Prev_Year_Renewable_Share'] = target_renewable - 2.0
+    future_features['Low-carbon electricity (% electricity)'] = target_lowcarbon
+
+    pred_co2_2030 = rf_model.predict(future_features.values.reshape(1, -1))[0]
+    delta_pct = ((pred_co2_2030 - actual_co2_2020) / actual_co2_2020) * 100
+
+    # Display Metrik
+    st.markdown(f"### Analisis Skenario Tahun 2030: **{selected_country}**")
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.markdown(f"""
+            <div class="metric-card" style="border-top: 5px solid #6c757d;">
+                <div class="metric-label">Actual CO2 (2020)</div>
+                <div class="metric-value">{actual_co2_2020:.2f} <span style="font-size:1rem;">Tons</span></div>
+                <div style="color: #6c757d; font-size: 0.9rem; margin-top:10px;">Baseline</div>
+            </div>
+        """, unsafe_allow_html=True)
+
+    with col2:
+        color = "#d32f2f" if delta_pct > 0 else "#2e7b32"
+        trend = "🔺 Naik" if delta_pct > 0 else "📉 Turun"
+        st.markdown(f"""
+            <div class="metric-card" style="border-top: 5px solid {color};">
+                <div class="metric-label">Predicted CO2 (2030)</div>
+                <div class="metric-value" style="color: {color};">{pred_co2_2030:.2f} <span style="font-size:1rem; color:#1e1e1e;">Tons</span></div>
+                <div style="color: {color}; font-size: 0.9rem; font-weight:bold; margin-top:10px;">{trend} {abs(delta_pct):.1f}% dari 2020</div>
+            </div>
+        """, unsafe_allow_html=True)
+
+    with col3:
+        st.markdown(f"""
+            <div class="metric-card" style="border-top: 5px solid #1976d2;">
+                <div class="metric-label">Target Energi Hijau</div>
+                <div class="metric-value">{target_renewable:.0f} <span style="font-size:1rem;">%</span></div>
+                <div style="color: #6c757d; font-size: 0.9rem; margin-top:10px;">Skenario Pilihan User</div>
+            </div>
+        """, unsafe_allow_html=True)
+
+    st.divider()
+    st.info(f"**💡 Insight Model:** Jika **{selected_country}** mencetak pertumbuhan ekonomi {gdp_growth}% dan konsumsi energi melonjak {energy_growth}% tiap tahunnya hingga 2030, emisi CO2 diproyeksikan berada di angka **{pred_co2_2030:.2f} Ton per kapita**.")
 
 # ==========================================
-# 7. TEAM & CREDITS PANEL
+# PANEL 2: MEET THE TEAM
 # ==========================================
-st.divider()
-st.markdown("### 👨‍💻 Meet Our Team - Group [Nomor/Nama Grup]")
-st.markdown("Proyek ini disusun untuk memenuhi tugas visualisasi dan pemodelan data energi global.")
-
-# Membuat 4 kolom agar sejajar (sesuaikan jumlahnya jika anggota grup kurang/lebih)
-team1, team2, team3, team4 = st.columns(4)
-
-with team1:
-    # Menggunakan UI Avatars sebagai placeholder dinamis
-    st.image("https://ui-avatars.com/api/?name=Darrell&background=2e7b32&color=fff&size=150", width=150)
-    st.markdown("**Darrell**")
-    st.caption("Machine Learning & Deployment Lead")
-
-with team2:
-    st.image("https://ui-avatars.com/api/?name=Anggota+2&background=1976d2&color=fff&size=150", width=150)
-    st.markdown("**[Nama Anggota 2]**")
-    st.caption("Data Prep & Cleaning Lead")
-
-with team3:
-    st.image("https://ui-avatars.com/api/?name=Anggota+3&background=d32f2f&color=fff&size=150", width=150)
-    st.markdown("**[Nama Anggota 3]**")
-    st.caption("Data Visualization Lead")
+elif menu == "👥 Meet the Team":
     
-with team4:
-    st.image("https://ui-avatars.com/api/?name=Anggota+4&background=ffb300&color=fff&size=150", width=150)
-    st.markdown("**[Nama Anggota 4]**")
-    st.caption("Research & Documentation")
+    # Header Panel 2
+    st.title("👨‍💻 Meet Our Team")
+    st.markdown("Proyek **Visualisasi dan Pemodelan Data Energi Global** ini disusun oleh Grup [Nomor/Nama Grup].")
+    st.divider()
+    
+    # Grid Layout untuk Anggota Tim
+    team1, team2, team3, team4 = st.columns(4)
 
-st.markdown("<br><center><p style='color: #6c757d; font-size: 0.8rem;'>© 2026 EcoSim Project. All rights reserved.</p></center>", unsafe_allow_html=True)
+    with team1:
+        st.image("https://ui-avatars.com/api/?name=Darrell&background=2e7b32&color=fff&size=200", use_column_width=True)
+        st.markdown("<h4 style='text-align: center;'>Darrell</h4>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #6c757d;'>Machine Learning & Deployment Lead</p>", unsafe_allow_html=True)
+
+    with team2:
+        st.image("https://ui-avatars.com/api/?name=Anggota+2&background=1976d2&color=fff&size=200", use_column_width=True)
+        st.markdown("<h4 style='text-align: center;'>[Nama Anggota 2]</h4>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #6c757d;'>Data Prep & Cleaning Lead</p>", unsafe_allow_html=True)
+
+    with team3:
+        st.image("https://ui-avatars.com/api/?name=Anggota+3&background=d32f2f&color=fff&size=200", use_column_width=True)
+        st.markdown("<h4 style='text-align: center;'>[Nama Anggota 3]</h4>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #6c757d;'>Data Visualization Lead</p>", unsafe_allow_html=True)
+        
+    with team4:
+        st.image("https://ui-avatars.com/api/?name=Anggota+4&background=ffb300&color=fff&size=200", use_column_width=True)
+        st.markdown("<h4 style='text-align: center;'>[Nama Anggota 4]</h4>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #6c757d;'>Research & Documentation</p>", unsafe_allow_html=True)
+
+    st.divider()
+    st.markdown("<center><p style='color: #6c757d;'>© 2026 EcoSim Project - Universitas [Nama Kampus]. All rights reserved.</p></center>", unsafe_allow_html=True)
