@@ -158,3 +158,36 @@ st.info(f"""
 **💡 Insight Model:** Jika **{selected_country}** mencetak pertumbuhan ekonomi rata-rata {gdp_growth}% dan konsumsi energi melonjak {energy_growth}% per tahun hingga 2030, emisi CO2 diproyeksikan berada di angka **{pred_co2_2030:.2f} Ton per kapita**. 
 Gunakan *slider* di sebelah kiri untuk menyimulasikan intervensi kebijakan transisi energi dan pantau perubahan emisi secara *real-time*!
 """)
+
+# ==========================================
+# 7. TEAM & CREDITS PANEL
+# ==========================================
+st.divider()
+st.markdown("### 👨‍💻 Meet Our Team - Group [Nomor/Nama Grup]")
+st.markdown("Proyek ini disusun untuk memenuhi tugas visualisasi dan pemodelan data energi global.")
+
+# Membuat 4 kolom agar sejajar (sesuaikan jumlahnya jika anggota grup kurang/lebih)
+team1, team2, team3, team4 = st.columns(4)
+
+with team1:
+    # Menggunakan UI Avatars sebagai placeholder dinamis
+    st.image("https://ui-avatars.com/api/?name=Darrell&background=2e7b32&color=fff&size=150", width=150)
+    st.markdown("**Darrell**")
+    st.caption("Machine Learning & Deployment Lead")
+
+with team2:
+    st.image("https://ui-avatars.com/api/?name=Anggota+2&background=1976d2&color=fff&size=150", width=150)
+    st.markdown("**[Nama Anggota 2]**")
+    st.caption("Data Prep & Cleaning Lead")
+
+with team3:
+    st.image("https://ui-avatars.com/api/?name=Anggota+3&background=d32f2f&color=fff&size=150", width=150)
+    st.markdown("**[Nama Anggota 3]**")
+    st.caption("Data Visualization Lead")
+    
+with team4:
+    st.image("https://ui-avatars.com/api/?name=Anggota+4&background=ffb300&color=fff&size=150", width=150)
+    st.markdown("**[Nama Anggota 4]**")
+    st.caption("Research & Documentation")
+
+st.markdown("<br><center><p style='color: #6c757d; font-size: 0.8rem;'>© 2026 EcoSim Project. All rights reserved.</p></center>", unsafe_allow_html=True)
